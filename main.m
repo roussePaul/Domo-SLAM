@@ -9,6 +9,8 @@ load data1
 % x,y,t : true position of the robot
 % v,w : velocity of the robot
 
+load map1
+% describe each segment
 
 
 %% Extract some beams froms the laser sensor
@@ -44,3 +46,18 @@ plot(points(:,1),points(:,2),'.');
 plot(x,y);
 axis equal;
 
+%% Plot map
+N = size(M,3);
+for i=1:N
+    plot(M(:,1,i),M(:,2,i),'g');
+end
+
+%% Compute basic association
+N = size(points,1);
+class = zeros(N,1);
+for i=1:N
+    class(i) = associate(M,points(i,:));
+end
+
+
+gscatter(points(:,1),points(:,2),class);
