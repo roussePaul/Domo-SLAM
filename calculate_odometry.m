@@ -11,14 +11,10 @@
 %           mu(t-1):        3X1
 % Outputs:
 %           u(t):           3X1
-function u = calculate_odometry(e_R,e_L,E_T,B,R_R,R_L,delta_t,mu)
+function u = calculate_odometry(delta_t,mu,v,w)
 if ~delta_t
     u = [0;0;0];
     return;
 end
-wr=2*pi*e_R/(E_T*delta_t);
-wl=2*pi*e_L/(E_T*delta_t);
-wt = (wr*R_R - wl*R_L)/B;
-vt = (wr*R_R + wl*R_L)/2;
-u = delta_t * [vt*cos(mu(3));vt*sin(mu(3));wt];
+u = delta_t * [v*cos(mu(3));v*sin(mu(3));w];
 end

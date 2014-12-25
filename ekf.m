@@ -16,7 +16,7 @@
 %           mu(t)               3X1
 %           sigma(t)            3X3
 %           outliers            1X1
-function [mu,sigma,outliers] = ekf(mu,sigma,R,Q,z,known_associations,u,M,Lambda_m,Map_IDS,t)
+function [mu,sigma,outliers] = ekf(mu,sigma,R,Q,z,angleMeasure,known_associations,u,M,Lambda_m,Map_IDS,t)
 [mu_bar,sigma_bar] = predict(mu,sigma,u,R);
 n = size(z,2);
 USE_KNOWN_ASSOCIATIONS = 1;

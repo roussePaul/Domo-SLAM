@@ -1,3 +1,5 @@
+%% Dataset generation
+
 clear
 close all
 
@@ -9,8 +11,22 @@ load data1
 % x,y,t : true position of the robot
 % v,w : velocity of the robot
 
-load map1
-% describe each segment
+%% Map
+M = zeros(2,2,12);
+i=1;
+
+M(:,:,i) = [-2.76,-6.40;-3.75,2.84]; i=i+1;
+M(:,:,i) = [M(2,:,i-1);44.01,8.303]; i=i+1;
+M(:,:,i) = [M(2,:,i-1);47.97,-26.82]; i=i+1;
+M(:,:,i) = [M(2,:,i-1);25.86,-29.3]; i=i+1;
+M(:,:,i) = [M(2,:,i-1);24.76,-19.55]; i=i+1;
+M(:,:,i) = [M(2,:,i-1);12.71,-20.89]; i=i+1;
+M(:,:,i) = [M(2,:,i-1);13.78,-30.62]; i=i+1;
+M(:,:,i) = [M(2,:,i-1);0.1436,-32.18]; i=i+1;
+M(:,:,i) = [M(2,:,i-1);-2.647,-7.122]; i=i+1;
+M(:,:,i) = [M(2,:,i-1);19.14,-4.681]; i=i+1;
+M(:,:,i) = [M(2,:,i-1);19.09,-4.036]; i=i+1;
+M(:,:,i) = [M(2,:,i-1);M(1,:,1)];
 
 
 %% Extract some beams froms the laser sensor
@@ -61,6 +77,21 @@ end
 gscatter(points(:,1),points(:,2),class,'bgrcmyk');
 
 
+
+
+
+%% Create file
+
+file = fopen('simout.txt','w');
+N = size(laser,1);
+for i=1:N
+    fprintf(file,'%f %f %f %f %f %f %d %f %f %d %f %f %d\n',...
+        time(i), x(i), y(i), t(i), v(i), w(i), 2,...
+        pi/2, laser(i,1), class(i), -pi/2,  laser(i,2), class(N+i) );
+end
+
+fclose(file);
+
 %% Compute initial state (map and position)
 N = size(M,3);
 mu = zeros(2*N,1);
@@ -75,6 +106,3 @@ for i=1:N
 end
 
 mu  =[x(1);y(1);t(1);mu];
-%% run EKF
-
-runlocalization_track;
