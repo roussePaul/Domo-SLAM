@@ -20,7 +20,6 @@ function [mu,sigma,outliers] = ekf(mu,sigma,R,Q,z,known_associations,u,M,Lambda_
 [mu_bar,sigma_bar] = predict(mu,sigma,u,R);
 n = size(z,2);
 USE_KNOWN_ASSOCIATIONS = 1;
-USE_BATCH_UPDATE = 0;
 outliers = 0;
 count = 0;
 
