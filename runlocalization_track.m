@@ -144,13 +144,13 @@ while 1
         RG = [cos(truepose(3)) -sin(truepose(3)); 
               sin(truepose(3)) cos(truepose(3))];
        
-        xsG = truepose(1:3) + [RG * sensorpose(1:2); sensorpose(3)];
+        xsG = truepose(1:3) + [RG * [d;0]; 0];
 
         hg = [];  
         if verbose > 2        
             for k = 1:n
-                    h2 = plot(xsG(1)+[0 ranges(k)*cos(xsG(3)+bearings(k))], ...
-                            xsG(2)+[0 ranges(k)*sin(xsG(3)+bearings(k))], 'g');
+                    h2 = plot(xsG(1)+[0 dist(k)*cos(xsG(3)+angleMeasure(k))], ...
+                            xsG(2)+[0 dist(k)*sin(xsG(3)+angleMeasure(k))], 'g');
 
                     hg = [hg h2];
             end
@@ -163,15 +163,15 @@ while 1
         RO = [cos(odom(3)) -sin(odom(3)); 
               sin(odom(3)) cos(odom(3))];
        
-        xsO = odom(1:3) + [RO * sensorpose(1:2); sensorpose(3)];
+        xsO = odom(1:3) + [RO * [d;0]; 0];
 
         ho = [];  
 
         if verbose > 2
             for k = 1:n
-                lmpo = xsO(1:2) +[ranges(k)*cos(xsO(3)+bearings(k));ranges(k)*sin(xsO(3)+bearings(k))];
-                    h1 = plot(xsO(1)+[0 ranges(k)*cos(xsO(3)+bearings(k))], ...
-                            xsO(2)+[0 ranges(k)*sin(xsO(3)+bearings(k))], 'g');
+                lmpo = xsO(1:2) +[dist(k)*cos(xsO(3)+angleMeasure(k));dist(k)*sin(xsO(3)+angleMeasure(k))];
+                    h1 = plot(xsO(1)+[0 dist(k)*cos(xsO(3)+angleMeasure(k))], ...
+                            xsO(2)+[0 dist(k)*sin(xsO(3)+angleMeasure(k))], 'g');
                     ho = [ho h1];
                 plot(lmpo(1),lmpo(2),'b.');
             end
