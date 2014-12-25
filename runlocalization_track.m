@@ -1,13 +1,16 @@
 % function runlocalization_track(simoutfile, mapfile,show_estimate,show_gth,show_odo,verbose)
 % This function is the entrance point to the code. 
 
-function runlocalization_track(data,map,show_estimate,show_gth,show_odo,verbose)
+function runlocalization_track(simoutfile,map,show_estimate,show_gth,show_odo,verbose)
 
 
 %%
 % Parameter Initialization
 [mu,sigma,R,Q,Lambda_M] = init();
-d=0.1;
+d=0.2;
+
+Map_IDS = [1:12];
+
 %% Data import
 M = map;
 
@@ -16,15 +19,16 @@ M = map;
 % clc;
 tic;
 
+margin = 5;
 
 if verbose
     fige = figure(1); % Estimated Movement and Map
     clf(fige);
     
     X = M(1,:,:);
-    X = X(:)
+    X = X(:);
     Y = M(2,:,:);
-    Y = Y(:)
+    Y = Y(:);
     xmin = min(X) - margin;
     xmax = max(X) + margin;
     ymin = min(Y) - margin;
@@ -42,9 +46,7 @@ if verbose > 1
     hcovs = plot(0,0,'r','erasemode','xor');
 end
 
-M = d(:,2:3)';
-Map_IDS = d(:,1)';
-fid = fopen([dataset_base simoutfile],'r');
+fid = fopen(simoutfile,'r');
 if fid <= 0
   disp(sprintf('Failed to open simoutput file "%s"\n',simoutfile));
   return
@@ -100,11 +102,11 @@ while 1
     u = calculate_odometry(delta_t,mu,odom(1),odom(2));
     z = [dist'];
     known_associations = ids';
-    [mu,sigma,outliers] = ekf(mu,sigma,R,Q,z,angleMeasure,known_associations,u,M,Lambda_M,Map_IDS,count);
+    [mu,sigma,outliers] = ekf(mu,sigma,R,Q,z,angleMeasure,known_associations,u,Lambda_M,Map_IDS,count);
         
     total_outliers = total_outliers + outliers;
     sigma_save = [sigma_save sigma(:)];
-    rerr = truepose - mu;
+    rerr = truepose - mu(1:3);
 
     rerr(3) = mod(rerr(3)+pi,2*pi)-pi;
     errpose = [errpose rerr];
@@ -118,20 +120,20 @@ while 1
         RE = [cos(mu(3)) -sin(mu(3)); 
               sin(mu(3)) cos(mu(3))];
 
-        xsE = mu(1:3) + [RE * sensorpose(1:2); sensorpose(3)];
+        xsE = mu(1:3) + [RE * [d;0]; 0];
 
         he = [];  
         if verbose > 2
             for k = 1:n
-                lmpe = xsE(1:2) +[ranges(k)*cos(xsE(3)+bearings(k));ranges(k)*sin(xsE(3)+bearings(k))];
-                    h3 = plot(xsE(1)+[0 ranges(k)*cos(xsE(3)+bearings(k))], ...
-                            xsE(2)+[0 ranges(k)*sin(xsE(3)+bearings(k))], 'r');
+                lmpe = xsE(1:2) +[dist(k)*cos(xsE(3)+angleMeasure(k));dist(k)*sin(xsE(3)+angleMeasure(k))];
+                    h3 = plot(xsE(1)+[0 dist(k)*cos(xsE(3)+angleMeasure(k))], ...
+                            xsE(2)+[0 dist(k)*sin(xsE(3)+angleMeasure(k))], 'r');
                     he = [he h3];
                 plot(lmpe(1),lmpe(2),'r.');
             end
         end
 
-        pcov= make_covariance_ellipses(mu,sigma);
+        pcov= make_covariance_ellipses(mu(1:3),sigma(1:3,1:3));
         set(hcovs,'xdata',pcov(1,:),'ydata',pcov(2,:));
         title(sprintf('t= %d, total outliers=%d, current outliers=%d',count,total_outliers,outliers));
         axis([xmin xmax ymin ymax]) 

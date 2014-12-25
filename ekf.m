@@ -16,7 +16,7 @@
 %           mu(t)               3X1
 %           sigma(t)            3X3
 %           outliers            1X1
-function [mu,sigma,outliers] = ekf(mu,sigma,R,Q,z,angleMeasure,known_associations,u,M,Lambda_m,Map_IDS,t)
+function [mu,sigma,outliers] = ekf(mu,sigma,R,Q,z,angleMeasure,known_associations,u,Lambda_m,Map_IDS,t)
 [mu_bar,sigma_bar] = predict(mu,sigma,u,R);
 n = size(z,2);
 USE_KNOWN_ASSOCIATIONS = 1;
@@ -24,7 +24,7 @@ outliers = 0;
 count = 0;
 
 for i = 1 : n
-    [c,outlier, nu, S, H] = associate(mu_bar,sigma_bar,z(:,i),M,Lambda_m,Q);
+    [c,outlier, nu, S, H] = associate(mu_bar,sigma_bar,z(:,i),angleMeasure(i),Lambda_m,Q);
     map_id = find(Map_IDS == known_associations(i));
     if c ~= map_id
         display(sprintf('warning, %d th measurement(of landmark %d) was incorrectly associated to landmark %d, t=%d',i,map_id,c,t));
@@ -38,8 +38,8 @@ for i = 1 : n
         c = map_id;
     end
     count = count + 1;
-    nu_bar = squeeze(nu(:,c));
-    S_bar = squeeze(S(:,:,c));
+    nu_bar = squeeze(nu(c));
+    S_bar = squeeze(S(c));
     H_bar = squeeze(H(:,:,c));
     [mu_bar,sigma_bar] = update(mu_bar,sigma_bar,H_bar,S_bar,nu_bar);   
 end

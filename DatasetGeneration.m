@@ -106,3 +106,5 @@ for i=1:N
 end
 
 mu  =[x(1);y(1);t(1);mu];
+
+save mu_init mu

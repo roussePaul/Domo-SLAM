@@ -12,7 +12,7 @@ function [mu_bar,sigma_bar] = predict(mu,sigma,u,R)
 x_r = mu(1:3);
 sigma_r = sigma(1:3,1:3);
 Gt = [1, 0, -u(2);0,1,u(1);0,0,1];
-mu_bar = [(x_r+u),mu(4,end)];
+mu_bar = [(x_r+u);mu(4:end)];
 sigma_bar = sigma;
 sigma_bar(1:3,1:3) = Gt * sigma_r * (Gt') + R;
 end

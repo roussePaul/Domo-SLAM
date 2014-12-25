@@ -16,6 +16,7 @@ M = map;
 % clc;
 tic;
 
+margin = 5;
 
 if verbose
     fige = figure(1); % Estimated Movement and Map
@@ -72,15 +73,15 @@ total_outliers = 0;
 t = 0;
 enc = [0;0];
 %%
-nbreMeasures = size(data,2);
 
 % Main loop
 while 1
     count = count + 1;
-    if count > nbreMeasures
+    if count > length(flines)
         break;
     end
-    values = data(count,:);
+    line = flines{count};
+    values = sscanf(line, '%f');
     pt = t;
     t = values(1);
     delta_t = t - pt;
@@ -89,18 +90,18 @@ while 1
     gth = [gth truepose];
     n = values(7);
     if (n > 0) 
-        angle = values(8:3:end);
+        angleMeasure = values(8:3:end);
         dist = values(9:3:end);
         ids = values(10:3:end);
     else
-        bearings = [];
-        ranges = [];
+        angleMeasure = [];
+        dist = [];
         ids = [];
     end
-    u = calculate_odometry(delta_t,mu);
+    u = calculate_odometry(delta_t,mu,odom(1),odom(2));
     z = [dist'];
     known_associations = ids';
-    [mu,sigma,outliers] = ekf_localize(mu,sigma,R,Q,z,known_associations,u,M,Lambda_M,Map_IDS,count);
+    [mu,sigma,outliers] = ekf(mu,sigma,R,Q,z,angleMeasure,known_associations,u,Lambda_M,Map_IDS,count);
         
     total_outliers = total_outliers + outliers;
     sigma_save = [sigma_save sigma(:)];

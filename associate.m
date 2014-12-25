@@ -12,11 +12,12 @@
 %           nu^i(t)             1XN
 %           S^i(t)              1X1XN
 %           H^i(t)              1XNeXN
-function [c,outlier, nu, S, H] = associate(mu_bar,sigma_bar,z_i,Lambda_m,Q)
+function [c,outlier, nu, S, H] = associate(mu_bar,sigma_bar,z_i,angleMeasure,Lambda_m,Q)
+
 
 Ne = size(mu_bar,1);
 
-N = size(M,2);
+N = (Ne-3)/2;
 zhat = zeros(N,1);
 H = zeros(1,Ne,N);
 S = zeros(N,1);
@@ -25,10 +26,10 @@ D_m = zeros(N,1);
 phi = zeros(N,1);
 
 for j=1:N
-    zhat(:,j) = observation_model(mu_bar, M,j);
-    H(:,:,j) = jacobian_observation_model(mu_bar,M,j,zhat,j);
+    zhat(:,j) = observation_model(mu_bar,j,angleMeasure);
+    H(:,:,j) = jacobian_observation_model(mu_bar,j,zhat,j,angleMeasure);
     S(j) = H(:,:,j)*sigma_bar*(H(:,:,j)') + Q;
-    nu(j) = z_i - zhat(:,j);
+    nu(j) = z_i - zhat(1,j);
     D_m(j) = nu(j) * inv(S(j)) * nu(j);
     phi(j) = det( 2*pi * S(j) )^(-1/2) * exp(-1/2 * D_m(j));
 end
