@@ -58,15 +58,16 @@ class = zeros(N,1);
 for i=1:N
     class(i) = associate2(M,points(i,:));
 end
-gscatter(points(:,1),points(:,2),class,'bgrcmyk');
 
+
+gscatter(points(:,1),points(:,2),class);
 
 %% Create file
 
 file = fopen('simout.txt','w');
 N = size(laser,1);
 for i=1:N
-    fprintf(file,'%f %f %f %f %f %f %d %f %f %d %f %f %d\n', time(i), x(i), y(i), t(i), v(i), w(i), 2, pi/2, laser(i,1), class(i), -pi/2,  laser(i,2), class(N+i) );
+    fprintf(file,'%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf', time(i), x(i), y(i), t(i), v(i), w(i), 2, (-pi/2), laser(i,1), class(2*i-1), pi/2,  laser(i,2), class(2*i) );
 end
 
 fclose(file);
