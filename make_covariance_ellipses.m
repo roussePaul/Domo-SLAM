@@ -23,9 +23,12 @@ function p= make_covariance_ellipses(x,P)
     end
 end
 
-function p= make_ellipse(x,P,s, phi)
+function p = make_ellipse(x,P,s, phi)
     % make a single 2-D ellipse of s-sigmas over phi angle intervals . (Tim
     % Bailey)
+    if sum(1-isfinite((P(:))))
+        P = 10^10 * ones(2);
+    end
     r= sqrtm(P);
     a= s*r*[cos(phi); sin(phi)];
     p(2,:)= [a(2,:)+x(2) NaN];

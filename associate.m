@@ -37,4 +37,8 @@ end
 [m,c] = max(phi);
 outlier = D_m(c)>=Lambda_m;
 
+figure
+drawState(mu_bar,[0.2;0],[-4 48 -33 9]);
+%drawMeasure(mu_bar,[0.2;0],[z_i,angleMeasure]);
+pause
 end
