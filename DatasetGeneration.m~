@@ -113,7 +113,6 @@ save mu_init mu
 N = size(laser,1);
 
 save animate;
-
 load mu_init mu;
 close all
 clc
