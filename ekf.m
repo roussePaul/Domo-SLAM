@@ -23,6 +23,11 @@ USE_KNOWN_ASSOCIATIONS = 1;
 outliers = 0;
 count = 0;
 
+draw(mu);
+pause
+draw(mu_bar);
+pause
+
 for i = 1 : n
     [c,outlier, nu, S, H] = associate(mu_bar,sigma_bar,z(:,i),angleMeasure(i),Lambda_m,Q);
     map_id = find(Map_IDS == known_associations(i));
