@@ -38,7 +38,7 @@ end
 outlier = D_m(c)>=Lambda_m;
 
 if 1
-    figure(1)
+    figure(20)
     clf(1)
     drawState(mu_bar,[0.2;0],[-4 48 -33 9]);
     drawMeasure(mu_bar,[0.2;0],[zhat(1,:)',repmat(angleMeasure,N,1)]);
