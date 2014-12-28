@@ -33,9 +33,9 @@ function h = drawFeature(mu, sensorPose, a, changeMask)
                 
                 P = ones(2);
                 j=1;
-                for l=1:4
-                    if in(p(:,l))
-                        P(j,:) = p(:,l)';
+                for =1:4
+                    if in(p(:,i))
+                        P(j,:) = p(:,i)';
                         j=j+1;
                     end
                     if j>2
