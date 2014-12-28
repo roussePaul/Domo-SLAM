@@ -38,6 +38,8 @@ index = 1:nLaserBeam;
 index = floor((index-1)/(nLaserBeam-1)*(nLaserCSV-1))+1;
 laser = laser(:,index);
 
+time = time - time(1);
+
 %% Definition of parameters
 
 nbrMeasures = size(laser,1);
@@ -58,7 +60,7 @@ end
 
 figure
 hold on
-plot(points(:,1),points(:,2),'.');
+%plot(points(:,1),points(:,2),'.');
 plot(x,y);
 axis equal;
 
@@ -77,22 +79,6 @@ end
 gscatter(points(:,1),points(:,2),class,'bgrcmyk');
 
 
-
-
-
-%% Create file
-time = time - time(1);
-
-file = fopen('simout.txt','w');
-N = size(laser,1);
-for i=1:N
-    fprintf(file,'%f %f %f %f %f %f %d %f %f %d %f %f %d\n',...
-        time(i), x(i), y(i), t(i), v(i), w(i), 2,...
-        pi/2, laser(i,1), class(i), -pi/2,  laser(i,2), class(N+i) );
-end
-
-fclose(file);
-
 %% Compute initial state (map and position)
 N = size(M,3);
 mu = zeros(2*N,1);
@@ -109,6 +95,31 @@ end
 mu  =[x(1);y(1);t(1);mu];
 
 save mu_init mu
+
+%% Basic odometry
+N = size(time,1);
+odom = zeros(3,N);
+for i=2:N
+    delta_t = time(i)-time(i-1);
+    u = calculate_odometry(delta_t,mu,v(i-1),w(i-1));
+    mu(1:3) = mu(1:3) + u; 
+    odom(:,i) = mu(1:3);
+end
+
+plot(odom(1,:),odom(2,:),'r');
+
+
+%% Create file
+
+file = fopen('simout.txt','w');
+N = size(laser,1);
+for i=1:N
+    fprintf(file,'%f %f %f %f %f %f %f %f %f %d %f %f %d %f %f %d\n',...
+        time(i), x(i), y(i), t(i),odom(1,i),odom(2,i),odom(3,i), v(i), w(i), 2,...
+        -pi/2, laser(i,1), class(2*i-1), pi/2,  laser(i,2), class(2*i) );
+end
+
+fclose(file);
 
 %% Animation of robot
 N = size(laser,1);

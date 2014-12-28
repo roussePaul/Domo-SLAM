@@ -5,6 +5,6 @@ function draw(mu,meas)
     drawState(mu,[0.2;0],[-4 48 -33 9]);
     
     if nargin>1
-        drawMeasure(mu_bar,[0.2;0],[zhat(1,:)',repmat(angleMeasure,N,1)]);
+        drawMeasure(mu,[0.2;0],meas);
     end
 end

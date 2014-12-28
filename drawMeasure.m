@@ -15,6 +15,6 @@ function h = drawMeasure(mu,sensorPose, meas)
         P = sensorPose + RM*[meas(i,1);0];
         P = mu(1:2) + RG*P;
         h1 = plot([s(1),P(1)],[s(2),P(2)],'r');
-        h2 = plot(P(1),P(2),'.r');
+        h2 = plot(P(1),P(2),'.b');
         h = [h h1 h2];
     end

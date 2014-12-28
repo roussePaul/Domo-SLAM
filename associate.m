@@ -26,13 +26,14 @@ D_m = zeros(N,1);
 phi = zeros(N,1);
 
 for j=1:N
-    zhat(:,j) = observation_model(mu_bar,j,angleMeasure);
+    zhat(j) = observation_model(mu_bar,j,angleMeasure);
     H(:,:,j) = jacobian_observation_model(mu_bar,j,zhat,j,angleMeasure);
     S(j) = H(:,:,j)*sigma_bar*(H(:,:,j)') + Q;
-    nu(j) = z_i - zhat(1,j);
+    nu(j) = z_i - zhat(j);
     D_m(j) = nu(j) * inv(S(j)) * nu(j);
     phi(j) = det( 2*pi * S(j) )^(-1/2) * exp(-1/2 * D_m(j));
 end
+
 
 [m,c] = max(phi);
 outlier = D_m(c)>=Lambda_m;

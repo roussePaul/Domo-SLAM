@@ -19,7 +19,4 @@ t = x(i+1);
 xr = x(1:3);
 h = -(xr(1)*cos(t)+xr(2)*sin(t) - rho + d*cos(xr(3)-t)) / cos(t - psi - xr(3));
 
-    if h<0
-        h=-10^10;
-    end
 end
