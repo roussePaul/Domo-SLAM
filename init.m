@@ -7,7 +7,7 @@
 %			Q:				2X2
 function [mu,sigma,R,Q,Lambda_M] = init()
 load mu_init mu;
-sigma = 1e-10*diag(ones(size(mu))); % initial covariance matrix
+sigma = 1e-3*diag(ones(size(mu))); % initial covariance matrix
 delta_m = 0.999;
 Lambda_M = chi2inv(delta_m,2);
 

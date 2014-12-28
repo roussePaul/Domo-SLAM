@@ -37,18 +37,11 @@ if opt.('verbose')
     title('Estimated Map and Movement');
 end
 hcovs = [];
-if opt.('verbose') > 1
+if opt.('verbose') > 0
     figure(fige);
-    hcovs = plot(0,0,'r');
+    hcovs = plot(0,0,'r','erasemode','xor');
 end
 
-%% Animate init
-
-frobot = figure(1);
-hold on;
-hf = drawFeature(mu,[0.2;0],[-4 48 -33 9]);
-hr=[];
-hm=[];
 
 %% init
 
@@ -57,20 +50,27 @@ if fid <= 0
   disp(sprintf('Failed to open simoutput file "%s"\n',simoutfile));
   return
 end
-flines = {};
-while 1
-    line = fgetl(fid);
-    if ~ischar(line)
-        break
-    end
-    flines = {flines{:} line};
-end
-fclose(fid);
 
+
+if opt.('maxStep')==-1
+    disp('Loading file...');
+    flines = {};
+    while 1
+        line = fgetl(fid);
+        if ~ischar(line)
+            break
+        end
+        flines = {flines{:} line};
+    end
+    fclose(fid);
+    disp('File loaded...');
+end
+    
 h = [];
 ho = [];
 he = [];
 hg = [];
+
 
 errpose = [];
 odom = zeros(3,1);
@@ -85,10 +85,21 @@ enc = [0;0];
 % Main loop
 while 1
     count = count + 1;
-    if count > length(flines)
-        break;
+    
+    if opt.('maxStep') == -1
+        if count > length(flines)
+            break;
+        end
+        line = flines{count};
+    else
+        if count > opt.('maxStep')
+            break;
+        end
+        line = fgetl(fid);
+        if ~ischar(line)
+            break
+        end
     end
-    line = flines{count};
     values = sscanf(line, '%f');
     pt = t;
     t = values(1);
@@ -142,7 +153,12 @@ while 1
                 plot(lmpe(1),lmpe(2),'r.');
             end
         end
-
+        title(sprintf('t= %d, total outliers=%d, current outliers=%d',count,total_outliers,outliers));
+        axis([xmin xmax ymin ymax]) 
+        
+    end
+    if n > 0 && opt.('showEstimateCov') && opt.('verbose') > 0
+    
         pcov= make_covariance_ellipses(mu(1:3),sigma(1:3,1:3));
         set(hcovs,'xdata',pcov(1,:),'ydata',pcov(2,:));
         title(sprintf('t= %d, total outliers=%d, current outliers=%d',count,total_outliers,outliers));
@@ -188,8 +204,12 @@ while 1
         end
         axis([xmin xmax ymin ymax]) 
     end
-
-   h = [ho he hg];
+    
+    hm = [];
+    if opt.('verbose') > 1
+        hm = drawFeature(mu,[d;0],[xmin xmax ymin ymax]);
+    end
+    h = [ho he hg hm];
 %     figure(frobot);
 %     delete(hr);
 %     delete(hm);
@@ -200,6 +220,17 @@ while 1
     
 end
 time = toc;
+
+
+%% close file if needed
+
+
+if opt.('maxStep')~=-1
+    fclose(fid);
+end
+
+%% Compute errors
+
 maex = mean(abs(errpose(1,:)));
 mex = mean(errpose(1,:));
 maey = mean(abs(errpose(2,:)));
@@ -207,7 +238,7 @@ mey = mean(errpose(2,:));
 maet = mean(abs(errpose(3,:)));
 met = mean(errpose(3,:));
 display(sprintf('mean error(x, y, theta)=(%f, %f, %f)\nmean absolute error=(%f, %f, %f)\ntotal_time =%f',mex,mey,met, maex,maey,maet,time));
-if verbose > 1    
+if opt.('verbose') > 1    
     figure(2);
     clf;
     subplot(3,1,1);
