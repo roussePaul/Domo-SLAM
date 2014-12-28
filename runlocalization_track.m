@@ -1,8 +1,9 @@
 % function runlocalization_track(simoutfile, mapfile,show_estimate,show_gth,show_odo,verbose)
 % This function is the entrance point to the code. 
 
-function runlocalization_track(simoutfile,map,show_estimate,show_gth,show_odo,verbose)
+function runlocalization_track(simoutfile,map,opt)
 
+opt = initOption(opt);
 
 %%
 % Parameter Initialization
@@ -20,7 +21,7 @@ M = map;
 tic;
 
 
-if verbose
+if opt.('verbose')
     fige = figure(1); % Estimated Movement and Map
     clf(fige);
     
@@ -36,7 +37,7 @@ if verbose
     title('Estimated Map and Movement');
 end
 hcovs = [];
-if verbose > 1
+if opt.('verbose') > 1
     figure(fige);
     hcovs = plot(0,0,'r');
 end
@@ -124,7 +125,7 @@ while 1
     end
     h = [];
    
-    if n > 0 && show_estimate && verbose > 0
+    if n > 0 && opt.('showEstimate') && opt.('verbose') > 0
         plot(mu(1), mu(2), 'rx')
         RE = [cos(mu(3)) -sin(mu(3)); 
               sin(mu(3)) cos(mu(3))];
@@ -132,7 +133,7 @@ while 1
         xsE = mu(1:3) + [RE * [d;0]; 0];
 
         he = [];  
-        if verbose > 2
+        if opt.('verbose') > 2
             for k = 1:n
                 lmpe = xsE(1:2) +[dist(k)*cos(xsE(3)+angleMeasure(k));dist(k)*sin(xsE(3)+angleMeasure(k))];
                     h3 = plot(xsE(1)+[0 dist(k)*cos(xsE(3)+angleMeasure(k))], ...
@@ -148,7 +149,7 @@ while 1
         axis([xmin xmax ymin ymax]) 
     end
         
-    if n > 0 && show_gth&& verbose > 0
+    if n > 0 && opt.('showTrue')&& opt.('verbose') > 0
         plot(truepose(1), truepose(2), 'gx');
         RG = [cos(truepose(3)) -sin(truepose(3)); 
               sin(truepose(3)) cos(truepose(3))];
@@ -156,7 +157,7 @@ while 1
         xsG = truepose(1:3) + [RG * [d;0]; 0];
 
         hg = [];  
-        if verbose > 2        
+        if opt.('verbose') > 2        
             for k = 1:n
                     h2 = plot(xsG(1)+[0 dist(k)*cos(xsG(3)+angleMeasure(k))], ...
                             xsG(2)+[0 dist(k)*sin(xsG(3)+angleMeasure(k))], 'g');
@@ -167,7 +168,7 @@ while 1
         axis([xmin xmax ymin ymax]) 
     end
    
-    if n > 0 && show_odo&& verbose > 0 
+    if n > 0 && opt.('showOdometry')&& opt.('verbose') > 0 
         plot(odom(1), odom(2), 'bx');
         RO = [cos(odom(3)) -sin(odom(3)); 
               sin(odom(3)) cos(odom(3))];
@@ -176,7 +177,7 @@ while 1
 
         ho = [];  
 
-        if verbose > 2
+        if opt.('verbose') > 2
             for k = 1:n
                 lmpo = xsO(1:2) +[dist(k)*cos(xsO(3)+angleMeasure(k));dist(k)*sin(xsO(3)+angleMeasure(k))];
                     h1 = plot(xsO(1)+[0 dist(k)*cos(xsO(3)+angleMeasure(k))], ...

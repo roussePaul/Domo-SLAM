@@ -1,0 +1,8 @@
+function opt = initOption(opt)
+if nargin<1
+    opt = struct();
+end
+
+opt = setIfEmpty(opt,'showEstimate',0);
+opt = setIfEmpty(opt,'show',0);
+opt = setIfEmpty(opt,'showEstimate',0);
