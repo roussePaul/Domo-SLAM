@@ -12,6 +12,6 @@ delta_m = 0.999;
 Lambda_M = chi2inv(delta_m,2);
 
 R = diag([0.1^2, 0.1^2, 0.01^2])/100;
-Q = diag([0.1^2])*1000000;
+Q = diag([0.1^2])*1000;
 
 end

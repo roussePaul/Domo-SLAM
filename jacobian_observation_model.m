@@ -26,15 +26,15 @@ phi = mu_bar(3);
 xr = mu_bar(1);
 yr = mu_bar(2);
 
-r = -1/cos(theta - psi - phi);
+r = 1/cos(theta - psi - phi);
 
 H = [...
-    r*cos(theta),...   %dz/dx
-    r*sin(theta),...   %dz/dy
-    -d*sin(phi-theta)*r - sin(theta-psi-phi) * z(i) * r,...   %dz/dphi
+    -r*cos(theta),...   %dz/dx
+    -r*sin(theta),...   %dz/dy
+    d*sin(phi-theta)*r - sin(theta-psi-phi) * z(i) * r,...   %dz/dphi
     zeros(1,2*j-2),...
-    -r,...             %dz/drho_i
-    r*(-xr*sin(theta)+yr*cos(theta) + d*sin(phi-theta)) + sin(theta-psi-phi) * z(i) *r,...    %dz/dtheta_i
+    r,...             %dz/drho_i
+    -r*(-xr*sin(theta)+yr*cos(theta) + d*sin(phi-theta)) + sin(theta-psi-phi) * z(i) *r,...    %dz/dtheta_i
     zeros(1,2*(N-j))...
     ];
 end
