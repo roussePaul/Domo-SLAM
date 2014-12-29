@@ -13,13 +13,13 @@
 %           H_bar(t)            nX3
 function [c,outlier, nu_bar, H_bar] = batch_associate(mu_bar,sigma_bar,z,angle,Lambda_m,Q)
 
-Ne = size(mu_bar,1);
-N = (Ne-3)/2;
+[N,Ne,Nf,nf,sM] = defSizes(mu_bar);
+
 n = size(z,1);
 
 zhat = zeros(N,n);
-H = zeros(1,Ne,N,n);
-S = zeros(N,n);
+H = zeros(sM,Ne,N);
+S = zeros(N,1);
 
 nu = zeros(N,1);
 D_m = zeros(N,1);

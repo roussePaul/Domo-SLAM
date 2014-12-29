@@ -13,11 +13,12 @@ function H = jacobian_observation_model(mu_bar,j,z,i,psi)
 
 % Parametres
 d=0.2;
+[N,Ne,Nf,nf] = defSizes(mu_bar);
 
-j_rho = 3+2*j-1;
+
+j_rho = Nf+nf*(j-1);
 j_theta = j_rho + 1;
 
-N = (size(mu_bar,1)-3)/2;    % Nbre of features
 
 rho = mu_bar(j_rho);
 theta = mu_bar(j_theta);
@@ -32,9 +33,10 @@ H = [...
     -r*cos(theta),...   %dz/dx
     -r*sin(theta),...   %dz/dy
     d*sin(phi-theta)*r - sin(theta-psi-phi) * z(i) * r,...   %dz/dphi
-    zeros(1,2*j-2),...
+    -r*(-xr*sin(theta)+yr*cos(theta) + d*sin(phi-theta)) + sin(theta-psi-phi) * z(i) *r,...
+    zeros(1,nf*(j-1)),...
     r,...             %dz/drho_i
     -r*(-xr*sin(theta)+yr*cos(theta) + d*sin(phi-theta)) + sin(theta-psi-phi) * z(i) *r,...    %dz/dtheta_i
-    zeros(1,2*(N-j))...
+    zeros(1,nf*(N-j))...
     ];
 end

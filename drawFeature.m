@@ -1,9 +1,11 @@
 function h = drawFeature(mu, sensorPose, a, changeMask)
     
+
+    [N,Ne,Nf,nf] = defSizes(mu);
+
     % Draw features
     
     axis(a);
-    N = (size(mu,1)-3)/2;
     
     if nargin<4
         changeMask = zeros(N,1);
@@ -13,8 +15,13 @@ function h = drawFeature(mu, sensorPose, a, changeMask)
     
     if N>0
         for i=1:N
-            rho = mu(3+2*i-1);
-            theta = mu(3+2*i);
+            j_rho = Nf+nf*(i-1);
+            j_theta = j_rho + 1;
+            rho = mu(j_rho);
+            theta = mu(j_theta);
+            
+            theta = getAngle(mu(4),theta);
+            
             if mod(theta,pi)==0
                 P = [cos(theta)*rho, a(3);cos(theta)*rho, a(4)];
             elseif mod(theta+pi/2,pi)==0

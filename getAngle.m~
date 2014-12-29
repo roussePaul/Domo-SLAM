@@ -1,0 +1,5 @@
+function t = getAngle(alpha,t)
+    k = 2*(a-t)/pi;
+    
+
+end

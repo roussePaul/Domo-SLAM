@@ -14,7 +14,7 @@
 function [c,outlier, nu_bar, H_bar] = batch_associate(mu_bar,sigma_bar,z,angle,Lambda_m,Q)
 
 Ne = size(mu_bar,1);
-N = (Ne-3)/2;
+N = (Ne-end)/2;
 n = size(z,1);
 
 zhat = zeros(N,n);
@@ -33,19 +33,19 @@ H_bar=[];
 
 for i=1:n
     for j=1:N
-        zhat(j,i) = observation_model(mu_bar,j,angle(i));
-        H(:,:,j,i) = jacobian_observation_model(mu_bar,j,zhat,j,angle(i));
-        S(j,i) = H(:,:,j)*sigma_bar*(H(:,:,j)') + Q;
+        zhat(j) = observation_model(mu_bar,j,angle(i));
+        H(:,:,j) = jacobian_observation_model(mu_bar,j,zhat,j,angle(i));
+        S(j) = H(:,:,j)*sigma_bar*(H(:,:,j)') + Q;
         
-        nu(j) = z(i) - zhat(j,i);
-        D_m(j) = (nu(j)') * inv(S(j,i)) * nu(j);
-        phi(j) = det( 2*pi * S(j,i) )^(-1/2) * exp(-1/2 * D_m(j));
+        nu(j) = z(i) - zhat(j);
+        D_m(j) = (nu(j)') * inv(S(j)) * nu(j);
+        phi(j) = det( 2*pi * S(j) )^(-1/2) * exp(-1/2 * D_m(j));
     end
     [m,c(i)] = max(phi);
     outlier(i) = D_m(c(i))>=Lambda_m;
     
     nu_bar = [nu_bar nu(c(i))'];
-    H_bar = [H_bar H(:,:,c(i),i)'];
+    H_bar = [H_bar H(:,:,c(i))'];
     
     %nu_f(:,i) = nu(:,c(i));
     %H_f(:,:,i) = H(:,:,c(i))';

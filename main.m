@@ -38,5 +38,5 @@ opt = setfield(opt,'showTrueMap',1);
 %% run EKF
 load map;
 
-runlocalization_track('simout_5_sensors_noisy.txt',M,opt);
+runlocalization_track('simout_10_sensors_noisy.txt',M,opt);
 

@@ -34,6 +34,7 @@ if opt.('verbose')
     drawLandmarkMap(M);
     hold on;
     axis([xmin xmax ymin ymax])
+    axis equal;
     title('Estimated Map and Movement');
 end
 hcovs = [];
@@ -225,9 +226,11 @@ while 1
 
         hm = [];
         if opt.('verbose') > 1
+            
+            [N_,Ne_,Nf,nf_,sM_] = defSizes(mu);
 
             delta_mu = mu-mu_old;
-            delta_mu = delta_mu(4:end);
+            delta_mu = delta_mu(Nf:end);
             delta_mu = abs(delta_mu(1:2:end)) + abs(delta_mu(2:2:end));
             mask = delta_mu>1e-10;
             mu_old = mu;

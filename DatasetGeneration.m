@@ -122,7 +122,15 @@ end
 
 mu  =[x(1);y(1);t(1);mu];
 
-save mu_init mu
+alpha = mu(5:2:end);
+for i=1:N
+    alpha(i) = mod(alpha(i),pi/2);
+end
+alpha = mean(alpha);
+
+mu_alpha = [mu(1:3);alpha;mu(4:end)];
+
+save mu_init mu mu_alpha
 
 %% Basic odometry
 disp('Odometry');
