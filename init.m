@@ -11,7 +11,7 @@ sigma = 1e-4*diag(ones(size(mu))); % initial covariance matrix
 delta_m = 0.999;
 Lambda_M = chi2inv(delta_m,2);
 
-R = diag([0.1^2, 0.1^2, 0.01^2])/100;
-Q = diag([0.1^2])*1000;
+R = diag([0.1^2, 0.1^2, 0.01^2])/1000;
+Q = diag([1^2])/100;
 
 end

@@ -19,34 +19,60 @@
 function [mu,sigma,outliers] = ekf(mu,sigma,R,Q,z,angleMeasure,known_associations,u,Lambda_m,Map_IDS,t)
 [mu_bar,sigma_bar] = predict(mu,sigma,u,R);
 n = size(z,2);
-USE_KNOWN_ASSOCIATIONS = 1;
+USE_KNOWN_ASSOCIATIONS = 0;
+USE_BATCH_UPDATE = 1;
 outliers = 0;
 count = 0;
 
-
-for i = 1 : n
-    [c,outlier, nu, S, H] = associate(mu_bar,sigma_bar,z(:,i),angleMeasure(i),Lambda_m,Q);
-    map_id = find(Map_IDS == known_associations(i));
-    if c ~= map_id
-        display(sprintf('warning, %d th measurement(of landmark %d) was incorrectly associated to landmark %d, t=%d',i,map_id,c,t));
+if USE_BATCH_UPDATE
+    [c,outlier, nu_bar, H_bar] = batch_associate(mu_bar,sigma_bar,z,angleMeasure,Lambda_m,Q);
+    if sum(outlier)
+        display(sprintf('warning, %d measurements were labeled as outliers, t=%d',sum(outlier), t));
     end
-    if outlier
-        display(sprintf('%d th measurement was labeled as outlier, t=%d',i,t));
-        outliers = outliers + 1;
-        continue;
+    map_ids = zeros(1,size(z,1));
+    for i = 1 : size(z,1)
+        map_ids(i) = find(Map_IDS == known_associations(i));
+        if map_ids(i) ~= c(i)
+            display(sprintf('warning, %d th measurement(of landmark %d) was incorrectly associated to landmark %d, t=%d',i,map_ids(i),c(i),t));
+        end
     end
-    if USE_KNOWN_ASSOCIATIONS
-        c = map_id;
+    valid_ixs = find(~outlier); % the indices of inliers
+    ix = valid_ixs;
+    ix = ix(:); 
+    nu_bar = nu_bar(ix);
+    H_bar = H_bar(ix,:);
+    n = length(valid_ixs);
+    Q_bar = zeros(n,n);
+    for i=1:n
+        ii= i;
+        Q_bar(ii,ii) = Q;
     end
-    count = count + 1;
-    nu_bar = squeeze(nu(c));
-    S_bar = squeeze(S(c));
-    H_bar = squeeze(H(:,:,c));
-    [mu_bar,sigma_bar] = update(mu_bar,sigma_bar,H_bar,S_bar,nu_bar);   
+    [mu,sigma] = batch_update(mu_bar,sigma_bar,H_bar,Q_bar,nu_bar);   
+    outliers = sum(outlier);
+else
+    for i = 1 : n
+        [c,outlier, nu, S, H] = associate(mu_bar,sigma_bar,z(:,i),angleMeasure(i),Lambda_m,Q);
+        map_id = find(Map_IDS == known_associations(i));
+        if c ~= map_id
+            display(sprintf('warning, %d th measurement(of landmark %d) was incorrectly associated to landmark %d, t=%d',i,map_id,c,t));
+        end
+        if outlier
+            display(sprintf('%d th measurement was labeled as outlier, t=%d',i,t));
+            outliers = outliers + 1;
+            continue;
+        end
+        if USE_KNOWN_ASSOCIATIONS
+            c = map_id;
+        end
+        count = count + 1;
+        nu_bar = squeeze(nu(c));
+        S_bar = squeeze(S(c));
+        H_bar = squeeze(H(:,:,c));
+        [mu_bar,sigma_bar] = update(mu_bar,sigma_bar,H_bar,S_bar,nu_bar);   
+    end
+    mu = mu_bar;
+    sigma = sigma_bar;
 end
-mu = mu_bar;
-sigma = sigma_bar;
-    
 if sum(sum(sigma~=sigma'))
     display('warning, sigma is not symmetric');
 end

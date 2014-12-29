@@ -1,9 +1,22 @@
 %% Dataset generation
-
+clc
 clear
 close all
 
+%% Configuration
+disp('Configuration')
+
+filename = 'simout_5_sensors_noisy.txt';
+
+nLaserBeam = 5; % Number of sensors used
+
+P = diag([0.1 0.01]);  % Noise covariance matrix on the odometry
+Q = 0.1;              % Noise covariance matrix on the measure
+
+verbose = 1;
+
 %% Load data
+disp('Load data')
 
 load data1
 % laser : data coming from the laser sensor (361 beams on 180 degrees)
@@ -30,15 +43,16 @@ M(:,:,i) = [M(2,:,i-1);M(1,:,1)];
 
 
 %% Extract some beams froms the laser sensor
-nLaserBeam = 2;
-
 nLaserCSV = size(laser,2);
 
 index = 1:nLaserBeam;
 index = floor((index-1)/(nLaserBeam-1)*(nLaserCSV-1))+1;
+angle = linspace(-pi/2,pi/2,361);
+angle = angle(index);
 laser = laser(:,index);
 
 time = time - time(1);
+
 
 %% Definition of parameters
 
@@ -48,8 +62,18 @@ nbrPoints = size(laser,1)*size(laser,2);
 points = ones(nbrPoints,2);
 robotPos = [x,y,t];
 
+%% Noise
+disp('Noise')
+laser = laser + Q*randn(size(laser));
+a = [v w];
+a = a + (randn(size(a)) * P);
+
+v=a(:,1);
+w=a(:,2);
 
 %% ideal scenario
+disp('Set points');
+
 N = size(laser,1);
 j=1;
 for i=1:N
@@ -58,26 +82,30 @@ for i=1:N
     j=nj;
 end
 
-figure
-hold on
-%plot(points(:,1),points(:,2),'.');
-plot(x,y);
-axis equal;
+if verbose
+    figure
+    hold on
+    %plot(points(:,1),points(:,2),'.');
+    plot(x,y);
+    axis equal;
 
-%% Plot map
-N = size(M,3);
-for i=1:N
-    plot(M(:,1,i),M(:,2,i),'g');
+    % Plot map
+    N = size(M,3);
+    for i=1:N
+        plot(M(:,1,i),M(:,2,i),'g');
+    end
 end
-
 %% Compute basic association
+disp('Association');
+
 N = size(points,1);
 class = zeros(N,1);
 for i=1:N
     class(i) = associate2(M,points(i,:));
 end
-gscatter(points(:,1),points(:,2),class,'bgrcmyk');
-
+if verbose
+    gscatter(points(:,1),points(:,2),class,'bgrcmyk');
+end
 
 %% Compute initial state (map and position)
 N = size(M,3);
@@ -97,6 +125,7 @@ mu  =[x(1);y(1);t(1);mu];
 save mu_init mu
 
 %% Basic odometry
+disp('Odometry');
 N = size(time,1);
 odom = zeros(3,N);
 for i=2:N
@@ -106,40 +135,42 @@ for i=2:N
     odom(:,i) = mu(1:3);
 end
 
-plot(odom(1,:),odom(2,:),'r');
-
+if verbose
+    plot(odom(1,:),odom(2,:),'r');
+end
 
 %% Create file
+disp('Write file');
 
-file = fopen('simout.txt','w');
+file = fopen(filename,'w');
 N = size(laser,1);
 for i=1:N
-    fprintf(file,'%f %f %f %f %f %f %f %f %f %d %f %f %d %f %f %d\n',...
-        time(i), x(i), y(i), t(i),odom(1,i),odom(2,i),odom(3,i), v(i), w(i), 2,...
-        -pi/2, laser(i,1), class(2*i-1), pi/2,  laser(i,2), class(2*i) );
+    fprintf(file,'%f %f %f %f %f %f %f %f %f %d %f %f %d %f %f %d',time(i), x(i), y(i), t(i),odom(1,i),odom(2,i),odom(3,i), v(i), w(i), nLaserBeam);
+    for j=1:nLaserBeam
+        fprintf(file,' %f %f %d',angle(j), laser(i,j), class(nLaserBeam*(i-1)+j));
+    end
+    fprintf(file,'\n');
 end
 
 fclose(file);
 
 %% Animation of robot
-N = size(laser,1);
+disp('Animate');
+if verbose
+    N = size(laser,1);
 
-save animate;
-
-load mu_init mu;
-close all
-clc
-
-hold on;
-f = drawFeature(mu,[0.2;0],[-4 48 -33 9]);
-r=[];
-m=[];
-for i=1:N
-    delete(r);
-    delete(m);
-    mu = [x(i);y(i);t(i);mu(4:end)];
-    r = drawRobot(mu,[0.2;0],[-4 48 -33 9]);
-    m = drawMeasure(mu ,[0.2;0], [laser(i,1),-pi/2;laser(i,2),pi/2]);
-    h = [f r m];
-    drawnow;
+    figure;
+    hold on;
+    f = drawFeature(mu,[0.2;0],[-4 48 -33 9]);
+    r=[];
+    m=[];
+    for i=1:N
+        delete(r);
+        delete(m);
+        mu = [x(i);y(i);t(i);mu(4:end)];
+        r = drawRobot(mu,[0.2;0],[-4 48 -33 9]);
+        m = drawMeasure(mu ,[0.2;0], [laser(i,:)',angle']);
+        h = [f r m];
+        drawnow;
+    end
 end
