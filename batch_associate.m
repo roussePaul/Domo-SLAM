@@ -15,7 +15,7 @@ function [c,outlier, nu_bar, H_bar] = batch_associate(mu_bar,sigma_bar,z,angle,L
 
 [N,Ne,Nf,nf,sM] = defSizes(mu_bar);
 
-n = size(z,1);
+n = size(z,2);
 
 zhat = zeros(N,n);
 H = zeros(sM,Ne,N);

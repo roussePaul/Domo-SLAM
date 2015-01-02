@@ -5,6 +5,7 @@ function runlocalization_track(simoutfile,map,opt)
 
 opt = initOption(opt);
 
+
 %%
 % Parameter Initialization
 [mu,sigma,R,Q,Lambda_M] = init();
@@ -71,6 +72,7 @@ h = [];
 ho = [];
 he = [];
 hg = [];
+hs = [];
 
 
 if opt.('showTrueMap') && opt.('verbose')>1
@@ -82,13 +84,15 @@ errpose = [];
 odom = zeros(3,1);
 count = 0;
 gth = [];
-sigma_save = sigma(:);
+sig = sigma(1:3,1:3);
+sigma_save = sig(:);
 total_outliers = 0;
 t = 0;
 enc = [0;0];
 
 mu_old = mu;
 
+tablOutliers = [];
 
 %%
 
@@ -139,11 +143,17 @@ while 1
     known_associations = ids';
     
     
-    [mu,sigma,outliers] = ekf(mu,sigma,R,Q,z,angleMeasure,known_associations,u,Lambda_M,Map_IDS,count);
+    [mu,sigma,outliers,outlier] = ekf(mu,sigma,R,Q,z,angleMeasure,known_associations,u,Lambda_M,Map_IDS,count);
+%     
+%     if count>998
+%         pause
+%     end
     
-    
+    [mu,sigma,tablOutliers] = addFeatures(mu,sigma,Q,z,angleMeasure,tablOutliers,outlier,get(fige,'CurrentCharacter')=='v');
+
     total_outliers = total_outliers + outliers;
-    sigma_save = [sigma_save sigma(:)];
+    sig = sigma(1:3,1:3);
+    sigma_save = [sigma_save sig(:)];
     rerr = truepose - mu(1:3);
 
     rerr(3) = mod(rerr(3)+pi,2*pi)-pi;
@@ -228,15 +238,25 @@ while 1
         if opt.('verbose') > 1
             
             [N_,Ne_,Nf,nf_,sM_] = defSizes(mu);
-
-            delta_mu = mu-mu_old;
+            diffSize = size(mu,1)-size(mu_old,1);
+            
+            delta_mu = mu(1:(end-diffSize))-mu_old;
             delta_mu = delta_mu(Nf:end);
             delta_mu = abs(delta_mu(1:2:end)) + abs(delta_mu(2:2:end));
             mask = delta_mu>1e-10;
             mu_old = mu;
+            mask = [mask; 2*ones(diffSize,1)];
             hm = drawFeature(mu,[d;0],[xmin xmax ymin ymax],mask);
         end
+        if opt.('showSigma')==1
+            fig = gcf;
+            figure(2);
+            hs = imagesc(sigma);
+            
+            figure(fig)
+        end
         h = [ho he hg hm];
+        
     %     figure(frobot);
     %     delete(hr);
     %     delete(hm);

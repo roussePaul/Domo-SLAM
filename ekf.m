@@ -16,7 +16,7 @@
 %           mu(t)               3X1
 %           sigma(t)            3X3
 %           outliers            1X1
-function [mu,sigma,outliers] = ekf(mu,sigma,R,Q,z,angleMeasure,known_associations,u,Lambda_m,Map_IDS,t)
+function [mu,sigma,outliers,outlier] = ekf(mu,sigma,R,Q,z,angleMeasure,known_associations,u,Lambda_m,Map_IDS,t)
 [mu_bar,sigma_bar] = predict(mu,sigma,u,R);
 n = size(z,2);
 USE_KNOWN_ASSOCIATIONS = 0;
@@ -24,16 +24,23 @@ USE_BATCH_UPDATE = 1;
 outliers = 0;
 count = 0;
 
-if USE_BATCH_UPDATE
+[N,Ne,Nf,nf,sM] = defSizes(mu_bar);
+
+if N==0
+    mu = mu_bar;
+    sigma = sigma_bar;
+    outliers = size(z,1);
+    outlier = ones(size(z,2),1);
+elseif USE_BATCH_UPDATE
     [c,outlier, nu_bar, H_bar] = batch_associate(mu_bar,sigma_bar,z,angleMeasure,Lambda_m,Q);
     if sum(outlier)
-        display(sprintf('warning, %d measurements were labeled as outliers, t=%d',sum(outlier), t));
+        %display(sprintf('warning, %d measurements were labeled as outliers, t=%d',sum(outlier), t));
     end
     map_ids = zeros(1,size(z,1));
     for i = 1 : size(z,1)
         map_ids(i) = find(Map_IDS == known_associations(i));
         if map_ids(i) ~= c(i)
-            display(sprintf('warning, %d th measurement(of landmark %d) was incorrectly associated to landmark %d, t=%d',i,map_ids(i),c(i),t));
+            %display(sprintf('warning, %d th measurement(of landmark %d) was incorrectly associated to landmark %d, t=%d',i,map_ids(i),c(i),t));
         end
     end
     valid_ixs = find(~outlier); % the indices of inliers

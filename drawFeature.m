@@ -51,9 +51,12 @@ function h = drawFeature(mu, sensorPose, a, changeMask)
                 end
             end
             hold on;
-            if changeMask(i)
+            if changeMask(i)==1
                 tickness = 3;
                 color = 'b';
+            elseif changeMask(i)==2
+                tickness = 3;
+                color = 'r';
             else
                 tickness = 1;
                 color = 'g';

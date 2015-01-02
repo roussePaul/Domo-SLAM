@@ -28,15 +28,16 @@ opt = setfield(opt,'showEstimate',1);
 opt = setfield(opt,'showEstimateCov',1);
 opt = setfield(opt,'showOdometry',0);
 opt = setfield(opt,'showTrue',1);
-opt = setfield(opt,'showStep',500);
+opt = setfield(opt,'showStep',10);
 opt = setfield(opt,'verbose',3);
 opt = setfield(opt,'maxStep',inf);
 opt = setfield(opt,'trueMap',M);
 opt = setfield(opt,'showTrueMap',1);
+opt = setfield(opt,'showSigma',0);
 
 
 %% run EKF
 load map;
 
-runlocalization_track('simout_10_sensors_noisy.txt',M,opt);
+runlocalization_track('simout_4_sensors.txt',M,opt);
 

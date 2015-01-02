@@ -6,15 +6,14 @@ close all
 %% Configuration
 disp('Configuration')
 
-filename = 'simout_5_sensors_noisy.txt';
+filename = 'simout_2_sensors.txt';
 
-nLaserBeam = 5; % Number of sensors used
+nLaserBeam = 2; % Number of sensors used
 
-P = diag([0.1 0.01]);  % Noise covariance matrix on the odometry
-Q = 0.1;              % Noise covariance matrix on the measure
+P = 0*diag([0.1 0.01]);  % Noise covariance matrix on the odometry
+Q = 0*0.1;              % Noise covariance matrix on the measure
 
 verbose = 1;
-
 %% Load data
 disp('Load data')
 
@@ -78,7 +77,7 @@ N = size(laser,1);
 j=1;
 for i=1:N
     nj=j+nbrSensors;
-    points(j:(nj-1),:) = getPosFromScan(robotPos(i,:),laser(i,:));
+    points(j:(nj-1),:) = getPosFromScan(robotPos(i,:),laser(i,:),angle);
     j=nj;
 end
 

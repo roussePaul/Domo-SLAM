@@ -11,3 +11,5 @@ opt = setIfEmpty(opt,'verbose',2);
 opt = setIfEmpty(opt,'maxStep',2);
 opt = setIfEmpty(opt,'showTrueMap',0);
 opt = setIfEmpty(opt,'showStep',1);
+opt = setIfEmpty(opt,'showSigma',0);
+
