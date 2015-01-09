@@ -39,7 +39,7 @@ for i=1:N
     data = X(I,:);
     d_eig = norm(eig(cov(data)));
     
-    if d_eig>2*d_noise_eig
+    if d_eig>50*d_noise_eig
         [Z1,C1] = covarianceLineExtraction(data,1,alpha,s);
         Z(j,:) = Z1;
         C(:,:,j) = C1;

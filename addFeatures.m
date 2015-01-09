@@ -1,12 +1,15 @@
 function [mu,sigma,tablOutliers] = addFeatures(mu,sigma,Q,z,angleMeasure,tablOutliers,outlier,verbose)
 
+%% Configuration
+bufferSize = 100;   % Size of the buffer
+f=0.0001;           % covariance of the noise on data (\Sigma{noise} in the report)
+
+%%
 if nargin<8
     verbose=0;      
 end
 
 np=5;
-bufferSize = 100;
-
 
 indOutliers = find(outlier~=0);
 pts = getPosFromScan(mu(1:3)',z(indOutliers),angleMeasure(indOutliers));
@@ -21,7 +24,7 @@ end
 
 if sTO>np
     
-    [Z,C,I] = lineExtraction(tablOutliers,0.0002*ones(2),0.2,mu(4),sigma(4,4)+0.01,verbose);
+    [Z,C,I] = lineExtraction(tablOutliers,f*ones(2),0.2,mu(4),sigma(4,4)+0.01,verbose);
 
     if size(Z,1)>0
         for i=1:size(Z,1)

@@ -94,6 +94,11 @@ mu_old = mu;
 
 tablOutliers = [];
 
+iTrackFeature = 0;
+
+muAlpha = [];
+sigAlpha = [];
+
 %%
 
 % Main loop
@@ -159,6 +164,27 @@ while 1
     rerr(3) = mod(rerr(3)+pi,2*pi)-pi;
     
     errpose = [errpose rerr];
+    
+        
+    %% Tracking feature
+    if opt.('trackingFeature')
+        iF = opt.('trackingFeature');
+        indexF = (3+2*iF);
+        if size(mu,1)>indexF
+            iTrackFeature = iTrackFeature +1;
+            muFeature(iTrackFeature,:) = mu(indexF:(indexF+1));
+            sig = sigma(indexF:(indexF+1),indexF:(indexF+1));
+            sigFeature(iTrackFeature,:) = sig(:);
+        end
+    end
+    %% Tracking alpha
+    if opt.('trackingAlpha')
+        muAlpha(count) = mu(4);
+        sigAlpha(count) = sigma(4,4);
+    end
+    
+    %% Draw
+    
    if mod(count,opt.('showStep'))==0
         for k = 1:length(h)
             delete(h(k))
@@ -295,24 +321,76 @@ if opt.('verbose') > 1
     subplot(3,1,1);
     plot(errpose(1,:));
     title(sprintf('error on x, mean error=%f, mean absolute err=%f',mex,maex));
+    ylabel('error on x_r (m)');
+    xlabel('timestep');
     subplot(3,1,2);
     plot(errpose(2,:));
     title(sprintf('error on y, mean error=%f, mean absolute err=%f',mey,maey));
+    ylabel('error on y_r (m)');
+    xlabel('timestep');
     subplot(3,1,3);
     plot(errpose(3,:));
     title(sprintf('error on theta, mean error=%f, mean absolute err=%f',met,maet));
+    ylabel('error on \theta_r (m)');
+    xlabel('timestep');
     
     figure(3);
     clf;
     subplot(3,1,1);
     plot(sigma_save(1,:));
     title('\Sigma(1,1)');
+    ylabel('\Sigma_{x_r} (m^{-2})');
+    xlabel('timestep');
     subplot(3,1,2);
     plot(sigma_save(5,:));
     title('\Sigma(2,2)');
+    ylabel('\Sigma_{y_r} (m^{-2})');
+    xlabel('timestep');
     subplot(3,1,3);
     plot(sigma_save(9,:));
     title('\Sigma(3,3)');
+    ylabel('\Sigma_{\theta_r} (rad^{-2})');
+    xlabel('timestep');
+    
+    
+    if opt.('trackingFeature')
+        figure(4);
+        subplot(2,1,1);
+        plot(sigFeature(:,1));
+        ylabel('\Sigma_{\rho_1} (m^{-2})');
+        xlabel('timestep');
+        title('\Sigma(1,1)');
+        subplot(2,1,2);
+        plot(sigFeature(:,4));
+        ylabel('\Sigma_{\theta_1} (rad^{-2})');
+        xlabel('timestep');
+        title('\Sigma(2,2)');
+        
+        figure(5);
+        subplot(2,1,1);
+        plot(muFeature(:,1));
+        title('\rho_1');
+        ylabel('\rho_1 (m)');
+        xlabel('timestep');
+        subplot(2,1,2);
+        plot(muFeature(:,2));
+        ylabel('\theta_1 (rad)');
+        xlabel('timestep');
+        title('\theta_1');
+    end
+    if opt.('trackingAlpha')
+        figure(6);
+        plot(sigAlpha(:));
+        ylabel('\Sigma_{\alpha} (rad^{-2})');
+        xlabel('timestep');
+        title('\Sigma_{\alpha}');
+        
+        figure(7);
+        plot(muAlpha(:));
+        ylabel('\alpha (rad)');
+        xlabel('timestep');
+        title('\alpha');
+    end
 end
 
 end

@@ -26,18 +26,22 @@ M(:,:,i) = [M(2,:,i-1);M(1,:,1)];
 opt = struct();
 opt = setfield(opt,'showEstimate',1);
 opt = setfield(opt,'showEstimateCov',1);
-opt = setfield(opt,'showOdometry',0);
+opt = setfield(opt,'showOdometry',1);
 opt = setfield(opt,'showTrue',1);
-opt = setfield(opt,'showStep',10);
+opt = setfield(opt,'showStep',100);
 opt = setfield(opt,'verbose',3);
 opt = setfield(opt,'maxStep',inf);
 opt = setfield(opt,'trueMap',M);
 opt = setfield(opt,'showTrueMap',1);
 opt = setfield(opt,'showSigma',0);
 
+% Track the feature 1 (give another index to track the feature you want)
+opt = setfield(opt,'trackingFeature',1);
+opt = setfield(opt,'trackingAlpha',1);
+
+
 
 %% run EKF
 load map;
 
-runlocalization_track('simout_4_sensors.txt',M,opt);
-
+runlocalization_track('simout/simout_4_sensors_e8.txt',M,opt);

@@ -22,12 +22,15 @@ j_theta = j_rho + 1;
 
 rho = mu_bar(j_rho);
 theta = mu_bar(j_theta);
+theta = getAngle(mu_bar(4),theta);
+
 
 phi = mu_bar(3);
 xr = mu_bar(1);
 yr = mu_bar(2);
 
 r = 1/cos(theta - psi - phi);
+
 
 H = [...
     -r*cos(theta),...   %dz/dx

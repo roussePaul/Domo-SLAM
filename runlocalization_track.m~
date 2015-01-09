@@ -5,6 +5,7 @@ function runlocalization_track(simoutfile,map,opt)
 
 opt = initOption(opt);
 
+
 %%
 % Parameter Initialization
 [mu,sigma,R,Q,Lambda_M] = init();
@@ -34,6 +35,7 @@ if opt.('verbose')
     drawLandmarkMap(M);
     hold on;
     axis([xmin xmax ymin ymax])
+    axis equal;
     title('Estimated Map and Movement');
 end
 hcovs = [];
@@ -70,6 +72,7 @@ h = [];
 ho = [];
 he = [];
 hg = [];
+hs = [];
 
 
 if opt.('showTrueMap') && opt.('verbose')>1
@@ -81,22 +84,30 @@ errpose = [];
 odom = zeros(3,1);
 count = 0;
 gth = [];
-sigma_save = sigma(:);
+sig = sigma(1:3,1:3);
+sigma_save = sig(:);
 total_outliers = 0;
 t = 0;
 enc = [0;0];
 
 mu_old = mu;
 
-%% Keyboard function
-stop = false;
-step = false;
-set(fige,'KeyPressFcn',@keyDownListener)
+tablOutliers = [];
+
+iTrackFeature = 0;
+
+muAlpha = [];
+sigAlpha = [];
 
 %%
 
 % Main loop
-while 
+while 1
+    
+    if(get(fige,'CurrentCharacter')=='s')
+        break;
+    end
+    
     count = count + 1;
     
     if opt.('maxStep') == -1
@@ -137,16 +148,43 @@ while
     known_associations = ids';
     
     
-    [mu,sigma,outliers] = ekf(mu,sigma,R,Q,z,angleMeasure,known_associations,u,Lambda_M,Map_IDS,count);
+    [mu,sigma,outliers,outlier] = ekf(mu,sigma,R,Q,z,angleMeasure,known_associations,u,Lambda_M,Map_IDS,count);
+%     
+%     if count>998
+%         pause
+%     end
     
-    
+    [mu,sigma,tablOutliers] = addFeatures(mu,sigma,Q,z,angleMeasure,tablOutliers,outlier,get(fige,'CurrentCharacter')=='v');
+
     total_outliers = total_outliers + outliers;
-    sigma_save = [sigma_save sigma(:)];
+    sig = sigma(1:3,1:3);
+    sigma_save = [sigma_save sig(:)];
     rerr = truepose - mu(1:3);
 
     rerr(3) = mod(rerr(3)+pi,2*pi)-pi;
     
     errpose = [errpose rerr];
+    
+        
+    %% Tracking feature
+    if opt.('trackingFeature')
+        iF = opt.('trackingFeature');
+        indexF = (3+2*iF);
+        if size(mu,1)>indexF
+            iTrackFeature = iTrackFeature +1;
+            muFeature(iTrackFeature,:) = mu(indexF:(indexF+1));
+            sig = sigma(indexF:(indexF+1),indexF:(indexF+1));
+            sigFeature(iTrackFeature,:) = sig(:);
+        end
+    end
+    %% Tracking alpha
+    if opt.('trackingAlpha')
+        muAlpha(count) = mu(4);
+        sigAlpha(count) = sigma(4,4);
+    end
+    
+    %% Draw
+    
    if mod(count,opt.('showStep'))==0
         for k = 1:length(h)
             delete(h(k))
@@ -224,15 +262,27 @@ while
 
         hm = [];
         if opt.('verbose') > 1
-
-            delta_mu = mu-mu_old;
-            delta_mu = delta_mu(4:end);
+            
+            [N_,Ne_,Nf,nf_,sM_] = defSizes(mu);
+            diffSize = size(mu,1)-size(mu_old,1);
+            
+            delta_mu = mu(1:(end-diffSize))-mu_old;
+            delta_mu = delta_mu(Nf:end);
             delta_mu = abs(delta_mu(1:2:end)) + abs(delta_mu(2:2:end));
             mask = delta_mu>1e-10;
             mu_old = mu;
+            mask = [mask; 2*ones(diffSize,1)];
             hm = drawFeature(mu,[d;0],[xmin xmax ymin ymax],mask);
         end
+        if opt.('showSigma')==1
+            fig = gcf;
+            figure(2);
+            hs = imagesc(sigma);
+            
+            figure(fig)
+        end
         h = [ho he hg hm];
+        
     %     figure(frobot);
     %     delete(hr);
     %     delete(hm);
@@ -240,7 +290,11 @@ while
     %     hm = drawMeasure(mu ,[0.2;0], [dist,angleMeasure]);
     %     h = [hf hr hm];
         drawnow;
-    end 
+   end 
+    
+   if get(fige,'CurrentCharacter')=='q'
+       pause;
+   end
 end
 time = toc;
 
@@ -267,6 +321,8 @@ if opt.('verbose') > 1
     subplot(3,1,1);
     plot(errpose(1,:));
     title(sprintf('error on x, mean error=%f, mean absolute err=%f',mex,maex));
+    ylabel('\Sigma_{\y_r} (m^{-2})');
+    xlabel('timestep');
     subplot(3,1,2);
     plot(errpose(2,:));
     title(sprintf('error on y, mean error=%f, mean absolute err=%f',mey,maey));
@@ -279,25 +335,58 @@ if opt.('verbose') > 1
     subplot(3,1,1);
     plot(sigma_save(1,:));
     title('\Sigma(1,1)');
+    ylabel('\Sigma_{\x_r} (m^{-2})');
+    xlabel('timestep');
     subplot(3,1,2);
     plot(sigma_save(5,:));
     title('\Sigma(2,2)');
+    ylabel('\Sigma_{\y_r} (m^{-2})');
+    xlabel('timestep');
     subplot(3,1,3);
     plot(sigma_save(9,:));
     title('\Sigma(3,3)');
+    ylabel('\Sigma_{\theta_r} (rad^{-2})');
+    xlabel('timestep');
+    
+    
+    if opt.('trackingFeature')
+        figure(4);
+        subplot(2,1,1);
+        plot(sigFeature(:,1));
+        ylabel('\Sigma_{\rho_1} (m^{-2})');
+        xlabel('timestep');
+        title('\Sigma(1,1)');
+        subplot(2,1,2);
+        plot(sigFeature(:,4));
+        ylabel('\Sigma_{\theta_1} (rad^{-2})');
+        xlabel('timestep');
+        title('\Sigma(2,2)');
+        
+        figure(5);
+        subplot(2,1,1);
+        plot(muFeature(:,1));
+        title('\rho_1');
+        ylabel('\rho_1 (m)');
+        xlabel('timestep');
+        subplot(2,1,2);
+        plot(muFeature(:,2));
+        ylabel('\theta_1 (rad)');
+        xlabel('timestep');
+        title('\theta_1');
+    end
+    if opt.('trackingAlpha')
+        figure(6);
+        plot(sigAlpha(:));
+        ylabel('\Sigma_{\alpha} (rad^{-2})');
+        xlabel('timestep');
+        title('\Sigma_{\alpha}');
+        
+        figure(7);
+        plot(muAlpha(:));
+        ylabel('\alpha (rad)');
+        xlabel('timestep');
+        title('\alpha');
+    end
 end
 
-
-%% Listener function
-
-function keyDownListener(src,event)    
-    switch event.Key
-      case 'q'
-        stop = true;
-      case 's'
-        step = true;
-      case 'p'
-        step = false;
-            
-    end
-  end
+end

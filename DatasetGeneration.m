@@ -6,14 +6,19 @@ close all
 %% Configuration
 disp('Configuration')
 
-filename = 'simout_2_sensors.txt';
+% simout filename
+filename = 'simout/simout_4_sensors_o-0_m-1.txt';
 
-nLaserBeam = 2; % Number of sensors used
+% Number of sensors used
+nLaserBeam = 4; 
 
-P = 0*diag([0.1 0.01]);  % Noise covariance matrix on the odometry
-Q = 0*0.1;              % Noise covariance matrix on the measure
+% Noise configuration
+P = 10*diag([0.1 0.1]);  % Noise covariance matrix on the odometry
+Q = 1*0.1;              % Noise covariance matrix on the measure
 
+% Verbose ?
 verbose = 1;
+
 %% Load data
 disp('Load data')
 
@@ -168,13 +173,14 @@ if verbose
 
     figure;
     hold on;
+    mu =mu_alpha;
     f = drawFeature(mu,[0.2;0],[-4 48 -33 9]);
     r=[];
     m=[];
     for i=1:N
         delete(r);
         delete(m);
-        mu = [x(i);y(i);t(i);mu(4:end)];
+        mu = [x(i);y(i);t(i);mu_alpha(4);mu(5:end)];
         r = drawRobot(mu,[0.2;0],[-4 48 -33 9]);
         m = drawMeasure(mu ,[0.2;0], [laser(i,:)',angle']);
         h = [f r m];

@@ -30,25 +30,27 @@ drawMeasure(mu,sensorPose,[z,t])
 %% jacobian observation model
 clc
 
-dx = 1e-8;
+dx = 1e-5;
 
-mu = randn(27,1);
+N=25;
+
+mu = randn(N,1);
 
 z = observation_model(mu,1,pi/2);
 
 H = jacobian_observation_model(mu,1,z,1,pi/2);
 i=0;
 H2 = H;
-for i=0:4
-    mu_d = (mu+dx*[zeros(i,1);1;zeros(26-i,1)]);
+for i=0:(N-1)
+    mu_d = (mu+dx*[zeros(i,1);1;zeros(N-1-i,1)]);
     zdx = observation_model(mu_d,1,pi/2);
     H2(i+1) = -(z-zdx)/dx;
 end
 
-H(1:5)
-H2(1:5)
+H(1:6)
+H2(1:6)
 err = (H-H2)./H;
-err(1:5)
+err(1:6)
 
 %% Line extraction
 
